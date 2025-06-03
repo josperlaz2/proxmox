@@ -3,7 +3,7 @@ pipeline {
     environment {
         PVE_URL = 'https://192.168.0.176:8006/api2/json' // Asegúrate de que esta sea la URL correcta de tu Proxmox
         TF_VAR_api_id = credentials('PROXMOX_API_TOKEN_ID') // ID de la credencial de Jenkins para el Token ID de Proxmox
-        TF_VAR_token_secret = credentials('PROMOX_API_TOKEN_SECRET') // ID de la credencial de Jenkins para el Token Secret de Proxmox
+        TF_VAR_token_secret = credentials('PROXMOX_API_TOKEN_SECRET') // ID de la credencial de Jenkins para el Token Secret de Proxmox
     }
     stages {
         stage('Checkout') {
