@@ -25,8 +25,8 @@ pipeline {
                         sh """
                         export PM_TLS_INSECURE=true
                         export PM_HOST=${PROXMOX_HOST_JENKINS}
-                        export PM_API_TOKEN_ID=${PROXMOX_API_TOKEN_ID_CRED}
-                        export PM_API_TOKEN_SECRET=${PROXMOX_API_TOKEN_SECRET_CRED}
+                        export PM_API_TOKEN_ID=${TF_VAR_api_id}
+                        export PM_API_TOKEN_SECRET=${TF_VAR_token_secret}
                         export PM_USER=${PROXMOX_USER_JENKINS}
 
                         tofu init
@@ -42,8 +42,8 @@ pipeline {
                         sh """
                         export PM_TLS_INSECURE=true
                         export PM_HOST=${PROXMOX_HOST_JENKINS}
-                        export PM_API_TOKEN_ID=${PROXMOX_API_TOKEN_ID_CRED}
-                        export PM_API_TOKEN_SECRET=${PROXMOX_API_TOKEN_SECRET_CRED}
+                        export PM_API_TOKEN_ID=${TF_VAR_api_id}
+                        export PM_API_TOKEN_SECRET=${TF_VAR_token_secret}
                         export PM_USER=${PROXMOX_USER_JENKINS}
 
                         tofu plan
@@ -59,8 +59,8 @@ pipeline {
                         sh """
                         export PM_TLS_INSECURE=true
                         export PM_HOST=${PROXMOX_HOST_JENKINS}
-                        export PM_API_TOKEN_ID=${PROXMOX_API_TOKEN_ID_CRED}
-                        export PM_API_TOKEN_SECRET=${PROXMOX_API_TOKEN_SECRET_CRED}
+                        export PM_API_TOKEN_ID=${TF_VAR_api_id}
+                        export PM_API_TOKEN_SECRET=${TF_VAR_token_secret}
                         export PM_USER=${PROXMOX_USER_JENKINS}
 
                         tofu apply --auto-approve
