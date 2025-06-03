@@ -9,7 +9,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    credentialsId: 'github-ssh-key', // ID de la credencial de Jenkins para la clave SSH de GitHub
+                    credentialsId: 'githubSSH', // ID de la credencial de Jenkins para la clave SSH de GitHub
                     url: 'git@github.com:josperlaz2/proxmox.git' // URL de tu repositorio de GitHub
             }
         }
