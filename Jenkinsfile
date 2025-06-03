@@ -20,7 +20,7 @@ pipeline {
         stage('Init Terraform') {
             steps {
                 dir('terraform') { // Asegúrate de que tus archivos .tf estén en una carpeta llamada 'terraform'
-                  script {
+                    script {
                         // Exportar las variables de entorno ANTES de ejecutar tofu
                         sh """
                         export PM_TLS_INSECURE=true
@@ -31,6 +31,7 @@ pipeline {
 
                         tofu init
                         """
+                    }
                 }
             }
         }
@@ -48,6 +49,7 @@ pipeline {
 
                         tofu plan
                         """
+                    }
                 }
             }
         }
@@ -65,8 +67,22 @@ pipeline {
 
                         tofu apply --auto-approve
                         """
+                    }
                 }
             }
         }
     }
-}
+    // --- INICIO DE LA CORRECCIÓN ---
+    post { // Este bloque es opcional, pero útil para notificaciones
+        always {
+            cleanWs() // Limpia el workspace de Jenkins después de la ejecución
+        }
+        failure {
+            echo "Pipeline falló. Revisa los logs para depurar."
+        }
+        success {
+            echo "Pipeline completado con éxito. Recursos desplegados."
+        }
+    }
+} // Esta es la llave de cierre final del bloque 'pipeline'
+// --- FIN DE LA CORRECCIÓN ---
