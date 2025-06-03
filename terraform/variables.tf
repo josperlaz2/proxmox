@@ -11,7 +11,7 @@ variable "token_id" {
 }
 
 variable "token_secret" {
-  description = 93e7002a-7031-4e62-ba17-9bf3f5fd3b16
+  description = "93e7002a-7031-4e62-ba17-9bf3f5fd3b16"
   type        = string
   sensitive   = true # Marca como sensible
 }
