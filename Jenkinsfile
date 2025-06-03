@@ -4,6 +4,10 @@ pipeline {
         PVE_URL = 'https://192.168.0.176:8006/api2/json' // Asegúrate de que esta sea la URL correcta de tu Proxmox
         TF_VAR_api_id = credentials('PROXMOX_API_TOKEN_ID') // ID de la credencial de Jenkins para el Token ID de Proxmox
         TF_VAR_token_secret = credentials('PROXMOX_API_TOKEN_SECRET') // ID de la credencial de Jenkins para el Token Secret de Proxmox
+
+        // Variables directas de Jenkins
+        PROXMOX_HOST_JENKINS = "192.168.0.176" // ¡Ajusta esta IP a la de tu Proxmox! La del main.tf era 192.168.10.10
+        PROXMOX_USER_JENKINS = "root@pam"
     }
     stages {
         stage('Checkout') {
@@ -16,21 +20,51 @@ pipeline {
         stage('Init Terraform') {
             steps {
                 dir('terraform') { // Asegúrate de que tus archivos .tf estén en una carpeta llamada 'terraform'
-                    sh 'terraform init'
+                  script {
+                        // Exportar las variables de entorno ANTES de ejecutar tofu
+                        sh """
+                        export PM_TLS_INSECURE=true
+                        export PM_HOST=${PROXMOX_HOST_JENKINS}
+                        export PM_API_TOKEN_ID=${PROXMOX_API_TOKEN_ID_CRED}
+                        export PM_API_TOKEN_SECRET=${PROXMOX_API_TOKEN_SECRET_CRED}
+                        export PM_USER=${PROXMOX_USER_JENKINS}
+
+                        tofu init
+                        """
                 }
             }
         }
         stage('Plan Terraform') {
             steps {
                 dir('terraform') {
-                    sh 'terraform plan'
+                    script {
+                        // Exportar las variables de entorno ANTES de ejecutar tofu
+                        sh """
+                        export PM_TLS_INSECURE=true
+                        export PM_HOST=${PROXMOX_HOST_JENKINS}
+                        export PM_API_TOKEN_ID=${PROXMOX_API_TOKEN_ID_CRED}
+                        export PM_API_TOKEN_SECRET=${PROXMOX_API_TOKEN_SECRET_CRED}
+                        export PM_USER=${PROXMOX_USER_JENKINS}
+
+                        tofu plan
+                        """
                 }
             }
         }
         stage('Apply Terraform') {
             steps {
                 dir('terraform') {
-                    sh 'terraform apply -auto-approve'
+                    script {
+                        // Exportar las variables de entorno ANTES de ejecutar tofu
+                        sh """
+                        export PM_TLS_INSECURE=true
+                        export PM_HOST=${PROXMOX_HOST_JENKINS}
+                        export PM_API_TOKEN_ID=${PROXMOX_API_TOKEN_ID_CRED}
+                        export PM_API_TOKEN_SECRET=${PROXMOX_API_TOKEN_SECRET_CRED}
+                        export PM_USER=${PROXMOX_USER_JENKINS}
+
+                        tofu apply --auto-approve
+                        """
                 }
             }
         }
