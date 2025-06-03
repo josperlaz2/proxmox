@@ -1,81 +1,93 @@
+// Jenkinsfile (en la raíz de tu repositorio)
 pipeline {
     agent any
-    environment {
-        PVE_URL = 'https://192.168.0.176:8006/api2/json' // Asegúrate de que esta sea la URL correcta de tu Proxmox
-        TF_VAR_api_id = credentials('PROXMOX_API_TOKEN_ID') // ID de la credencial de Jenkins para el Token ID de Proxmox
-        TF_VAR_token_secret = credentials('PROXMOX_API_TOKEN_SECRET') // ID de la credencial de Jenkins para el Token Secret de Proxmox
 
-        // Variables directas de Jenkins
-        PROXMOX_HOST_JENKINS = "192.168.0.176" // ¡Ajusta esta IP a la de tu Proxmox! La del main.tf era 192.168.10.10
-        PROXMOX_USER_JENKINS = "root@pam"
+    environment {
+        // Variables que Jenkins cargará como variables de entorno
+        // Estas son las que Terraform buscará automáticamente (TF_VAR_*)
+
+        // TF_VAR_api_url para el parámetro 'api_url' de tu main.tf
+        TF_VAR_api_url = "https://192.168.0.176:8006/api2/json" // ¡AJUSTA A LA IP REAL DE TU PROXMOX!
+
+        // TF_VAR_token_id para el parámetro 'token_id' de tu main.tf
+        TF_VAR_token_id = credentials('PROXMOX_API_TOKEN_ID') // Nombre de la credencial de Jenkins
+
+        // TF_VAR_token_secret para el parámetro 'token_secret' de tu main.tf
+        TF_VAR_token_secret = credentials('PROXMOX_API_TOKEN_SECRET') // Nombre de la credencial de Jenkins
+
+        // PM_USER es una variable de entorno que el proveedor de Proxmox puede usar
+        // si no especificas un usuario en tu token. Si tu token es 'root@pam!tokenid',
+        // 'root@pam' ya está implícito en el token.
+        // Si tu token es solo 'tokenid' y necesita 'root@pam' como usuario, mantén esta.
+        PM_USER = "root@pam" // Usuario de Proxmox (ej. root@pam, usuario@pve)
     }
+
     stages {
-        stage('Checkout') {
+        stage('Checkout SCM') {
             steps {
+                // Este primer checkout es el que Jenkins hace al inicio del job
+                // para obtener el Jenkinsfile. Generalmente no necesita ser re-declarado.
+                // Sin embargo, si lo mantienes, asegúrate de que el credentialsId sea correcto.
                 git branch: 'main',
-                    credentialsId: 'githubSSH', // ID de la credencial de Jenkins para la clave SSH de GitHub
-                    url: 'git@github.com:josperlaz2/proxmox.git' // URL de tu repositorio de GitHub
+                    credentialsId: 'githubSSH', // El ID de tu credencial SSH de GitHub en Jenkins
+                    url: 'git@github.com:josperlaz2/proxmox.git'
             }
         }
+
         stage('Init Terraform') {
             steps {
-                dir('terraform') { // Asegúrate de que tus archivos .tf estén en una carpeta llamada 'terraform'
+                dir('terraform') { // Cambia al directorio donde están tus archivos .tf
                     script {
-                        // Exportar las variables de entorno ANTES de ejecutar tofu
                         sh """
+                        # Exporta variables de entorno específicas del proveedor de Proxmox
+                        # PM_TLS_INSECURE es para evitar errores de certificado autofirmado en desarrollo.
                         export PM_TLS_INSECURE=true
-                        export PM_HOST=${PROXMOX_HOST_JENKINS}
-                        export PM_API_TOKEN_ID=${TF_VAR_api_id}
-                        export PM_API_TOKEN_SECRET=${TF_VAR_token_secret}
-                        export PM_USER=${PROXMOX_USER_JENKINS}
+                        # export PM_USER=${PM_USER} # Se puede omitir si el token ID ya incluye el usuario (ej. root@pam!tokenid)
 
-                        tofu init
+                        # Ejecuta la inicialización de Terraform.
+                        # Terraform buscará automáticamente TF_VAR_api_url, TF_VAR_token_id, TF_VAR_token_secret
+                        # que Jenkins ya exportó del bloque 'environment'.
+                        terraform init
                         """
                     }
                 }
             }
         }
+
         stage('Plan Terraform') {
             steps {
                 dir('terraform') {
                     script {
-                        // Exportar las variables de entorno ANTES de ejecutar tofu
                         sh """
                         export PM_TLS_INSECURE=true
-                        export PM_HOST=${PROXMOX_HOST_JENKINS}
-                        export PM_API_TOKEN_ID=${TF_VAR_api_id}
-                        export PM_API_TOKEN_SECRET=${TF_VAR_token_secret}
-                        export PM_USER=${PROXMOX_USER_JENKINS}
+                        # export PM_USER=${PM_USER}
 
-                        tofu plan
+                        terraform plan
                         """
                     }
                 }
             }
         }
+
         stage('Apply Terraform') {
             steps {
                 dir('terraform') {
                     script {
-                        // Exportar las variables de entorno ANTES de ejecutar tofu
                         sh """
                         export PM_TLS_INSECURE=true
-                        export PM_HOST=${PROXMOX_HOST_JENKINS}
-                        export PM_API_TOKEN_ID=${TF_VAR_api_id}
-                        export PM_API_TOKEN_SECRET=${TF_VAR_token_secret}
-                        export PM_USER=${PROXMOX_USER_JENKINS}
+                        # export PM_USER=${PM_USER}
 
-                        tofu apply --auto-approve
+                        terraform apply --auto-approve
                         """
                     }
                 }
             }
         }
     }
-    // --- INICIO DE LA CORRECCIÓN ---
-    post { // Este bloque es opcional, pero útil para notificaciones
+
+    post {
         always {
-            cleanWs() // Limpia el workspace de Jenkins después de la ejecución
+            cleanWs() // Limpia el workspace del agente de Jenkins
         }
         failure {
             echo "Pipeline falló. Revisa los logs para depurar."
@@ -84,5 +96,4 @@ pipeline {
             echo "Pipeline completado con éxito. Recursos desplegados."
         }
     }
-} // Esta es la llave de cierre final del bloque 'pipeline'
-// --- FIN DE LA CORRECCIÓN ---
+}
