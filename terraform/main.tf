@@ -19,7 +19,7 @@ resource "proxmox_lxc" "ct1" {
   target_node = "pve" # Nombre de tu nodo Proxmox (ej. "pve")
   hostname    = "jenkins-demo" # Nombre del host para el contenedor
   // ASEGÚRATE de que esta plantilla existe EXACTAMENTE en tu Proxmox
-  ostemplate  = "local:vztmpl/debian-11-standard_11.7-1_amd64.tar.gz_tmp_dwnl.3573"
+  ostemplate  = "local:vztmpl/debian-11-standard_11.7-1_amd64.tar.gz"
   password    = "123456" # Contraseña para el usuario root del contenedor (solo para pruebas, NO para producción)
   cores       = 2
   memory      = 1024 # MB
