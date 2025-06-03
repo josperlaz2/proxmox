@@ -24,7 +24,7 @@ resource "proxmox_lxc" "ct1" {
   cores       = 2
   memory      = 1024 # MB
   swap        = 512 # MB
-  net0 {
+  network {
     name = "eth0"
     bridge = "vmbr0" # El bridge de red de tu Proxmox (ej. vmbr0, vmbr1)
     ip = "dhcp"      # Asignación de IP por DHCP
